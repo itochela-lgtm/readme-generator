@@ -43,8 +43,8 @@ This project provides a tool that scans a repository and produces a README file.
 ### Local Python Setup
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/itochela-lgtm/readme-generator.git
+cd readme-generator
 
 python -m venv .venv
 source .venv/bin/activate
