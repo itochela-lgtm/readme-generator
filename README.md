@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="README Generator" width="100%" />
+</p>
+
 # README Generator
 
 A CLI and Streamlit web UI for generating `README.md` files from local or remote Git repositories using LangGraph and DashScope.
