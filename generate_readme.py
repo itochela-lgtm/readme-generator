@@ -24,8 +24,16 @@ import git
 
 load_dotenv()
 
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "dashscope").lower()
 DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-MODEL_NAME = os.getenv("DASHSCOPE_MODEL", "qwen3.6-plus")
+
+_DEFAULT_MODELS = {
+    "dashscope": "qwen3.6-plus",
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-sonnet-4-5",
+    "gemini": "gemini-2.0-flash",
+}
+MODEL_NAME = os.getenv("LLM_MODEL", os.getenv("DASHSCOPE_MODEL", _DEFAULT_MODELS.get(LLM_PROVIDER, "qwen3.6-plus")))
 
 # File/dir yang di-skip saat scan tree (biar konteks nggak kebanjiran)
 IGNORE_DIRS = {
@@ -130,7 +138,48 @@ def find_existing_readme(root: str) -> Optional[str]:
     return None
 
 
-def get_llm() -> ChatOpenAI:
+def get_llm():
+    """
+    Provider LLM ditentukan oleh ENV LLM_PROVIDER:
+      - "dashscope" (default): Alibaba DashScope, pakai ChatOpenAI (OpenAI-compatible endpoint)
+      - "openai": OpenAI asli, atau provider OpenAI-compatible lain (set OPENAI_BASE_URL kalau bukan resmi)
+      - "anthropic": Claude API resmi
+      - "gemini": Google Gemini API
+    """
+    if LLM_PROVIDER == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            sys.exit("[!] ENV ANTHROPIC_API_KEY belum di-set.")
+        return ChatAnthropic(
+            model=os.getenv("LLM_MODEL", "claude-sonnet-4-5"),
+            api_key=api_key,
+            temperature=0.3,
+        )
+
+    if LLM_PROVIDER == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            sys.exit("[!] ENV GOOGLE_API_KEY belum di-set.")
+        return ChatGoogleGenerativeAI(
+            model=os.getenv("LLM_MODEL", "gemini-2.0-flash"),
+            google_api_key=api_key,
+            temperature=0.3,
+        )
+
+    if LLM_PROVIDER == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            sys.exit("[!] ENV OPENAI_API_KEY belum di-set.")
+        return ChatOpenAI(
+            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            base_url=os.getenv("OPENAI_BASE_URL"),  # None = endpoint resmi OpenAI
+            api_key=api_key,
+            temperature=0.3,
+        )
+
+    # default: dashscope (atau provider OpenAI-compatible custom lain)
     api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         sys.exit("[!] ENV DASHSCOPE_API_KEY belum di-set.")
