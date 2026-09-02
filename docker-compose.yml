@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  readme-generator:
+    build: .
+    image: readme-generator:latest
+    container_name: readme-generator
+    env_file:
+      - .env
+    volumes:
+      # Repo lokal yang mau di-generate README-nya (read-only)
+      - ${LOCAL_REPO_PATH:-./target-repo}:/workspace/repo:ro
+      # Hasil README.md ditulis ke sini
+      - ./output:/output
+    command: ["python", "generate_readme.py", "--repo", "/workspace/repo", "--output", "/output/README.md"]
+    profiles: ["cli"]
+
+  readme-ui:
+    build: .
+    image: readme-generator:latest
+    container_name: readme-generator-ui
+    env_file:
+      - .env
+    ports:
+      - "8501:8501"
+    volumes:
+      # Repo lokal yang mau dipilih dari input path UI (read-only)
+      - ${LOCAL_REPO_PATH:-./target-repo}:/workspace/repo:ro
+    command: ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]
