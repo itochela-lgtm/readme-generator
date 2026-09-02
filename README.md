@@ -6,6 +6,10 @@
 
 A CLI and Streamlit web UI for generating `README.md` files from local or remote Git repositories using LangGraph and DashScope.
 
+<p align="center"> 
+  <img src="assets/demo.gif" alt="Demo" width="850" />
+</p
+> 
 ## Description
 
 This project provides a tool that scans a repository and produces a README file. It can be used either as a command-line utility or through a Streamlit interface. The generator supports local repositories mounted into a Docker container and external Git repositories accessed by URL.
